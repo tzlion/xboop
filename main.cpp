@@ -318,13 +318,13 @@ int main(void)
 
 
 	// init
-	do
+	/*do
 	{
 
         Sleep(sleep1);
 		r = Spi32(0);
 
-	} while(r != 0x50525406);
+	} while(r != 0x50525406);*/
 
 
 	// select cmd
