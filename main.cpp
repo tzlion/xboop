@@ -59,9 +59,12 @@ enum {
 };
 
 bool xbooCompat = true;
-unsigned short dataPort = 0xD010;
-unsigned short statusPort = 0xD011;
-unsigned short controlPort = 0xD012;
+//unsigned short dataPort = 0xD010;
+//unsigned short statusPort = 0xD011;
+//unsigned short controlPort = 0xD012;
+unsigned short dataPort = 0x0378;
+unsigned short statusPort = 0x0379;
+unsigned short controlPort = 0x037a;
 
 typedef void(__stdcall *lpOut32)(short, short);
 typedef short(__stdcall *lpInp32)(short);
@@ -330,6 +333,8 @@ int main(void)
 	// select cmd
 	for(;;)
 	{
+        //if (r != 0 && r != 0xffffffff) printf("%08x\n", r);
+
 		switch(r & 0xffffff00)
 		{
 		// PRINT_CMD
@@ -382,7 +387,7 @@ int main(void)
 			break;
 		}
 
-        Sleep(sleep1);
+        Sleep(1000);
 		r = Spi32(0);
 	}
 }
@@ -397,7 +402,7 @@ void CmdPrint(uint32_t cnt)
 		if(i % 4 == 0)
 		{
 			r = Spi32(0);
-            Sleep(sleep2);
+       //     Sleep(sleep2);
 		}
 
 		c = r & 0xff;
@@ -405,7 +410,7 @@ void CmdPrint(uint32_t cnt)
 		if((c >= 0x20 && c <= 0x7E) || c == 0x0D || c == 0x0A)
 		{
 			printf("%c", c);
-            Sleep(sleep1);
+       //     Sleep(sleep1);
 		}
 
 		r >>= 8;
@@ -472,14 +477,15 @@ void CmdFwrite(void)
 		if(i % 4 == 0)
 		{
 			r = Spi32(0);
-            Sleep(sleep2);
+        //    Sleep(sleep2);
 		}
 
 		fputc(r & 0xff, fpSave);
 		r >>= 8;
 	}
 
-//	printf("fwrite END %d\n", size*count);
+  //  Sleep(1000);
+	printf("fwrite END %d\n", size*count);
 }
 //---------------------------------------------------------------------------
 void CmdFclose(void)
