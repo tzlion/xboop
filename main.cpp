@@ -340,7 +340,7 @@ int main(void)
 		// PRINT_CMD
 		case 0x50525400:
 			CmdPrint(r & 0xff);
-            Sleep(1000);
+            Sleep(100);
 			break;
 
 		// DPUTC_CMD
@@ -366,7 +366,7 @@ int main(void)
 		// FWRITE_CMD
 		case 0x46575200:
 			CmdFwrite();
-            Sleep(1000);
+            Sleep(100);
 			break;
 
 		// FCLOSE_CMD
@@ -551,7 +551,7 @@ uint32_t Spi32(uint32_t w)
     recv[2] = gb_sendbyte(send[2]);
     recv[3] = gb_sendbyte(send[3]);
 
-    lptdelay(64);
+    lptdelay(8); // previously 64
 	//spiXfer(spi, send, recv, 4);
 
 	uint32_t ret = 0;
