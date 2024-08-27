@@ -2,7 +2,12 @@
 #include <stdint.h>
 #include <string.h>
 #include <time.h>
+#ifdef _WIN32
 #include "windows.h"
+#else
+#include <unistd.h>
+#include <sys/io.h>
+#endif
 
 // gcc -Wall -o SendSave SendSave.c -lpigpio
 
@@ -22,8 +27,8 @@ void     CmdFtell(void);
 
 //---------------------------------------------------------------------------
 int spi;
-DWORD sleep1 = 10;
-DWORD sleep2 = 2;
+int sleep1 = 10;
+int sleep2 = 2;
 
 FILE* fpSave;
 
@@ -66,19 +71,29 @@ unsigned short dataPort = 0x0378;
 unsigned short statusPort = 0x0379;
 unsigned short controlPort = 0x037a;
 
+#ifdef _WIN32
 typedef void(__stdcall *lpOut32)(short, short);
 typedef short(__stdcall *lpInp32)(short);
 lpOut32 gfpOut32;
 lpInp32 gfpInp32;
+#endif
 
 /******************************************************************************/
 unsigned char inportb(unsigned short port)
 {
+#ifdef _WIN32
     return gfpInp32(port);
+#else
+    return inb(port);
+#endif
 }
 void outportb(unsigned short port, unsigned char value)
 {
+#ifdef _WIN32
     gfpOut32(port,value);
+#else
+    outb(value,port);
+#endif
 }
 
 /******************************************************************************/
@@ -187,6 +202,7 @@ U8 gb_readbyte()
 //---------------------------------------------------------------------------
 int main(void)
 {
+#ifdef _WIN32
     HINSTANCE hInpOutDll;
     hInpOutDll = LoadLibrary("inpout32.dll");
     if (hInpOutDll != NULL) {
@@ -196,6 +212,7 @@ int main(void)
         printf("Unable to load inpout32.dll\n");
         return -1;
     }
+#endif
 
 	FILE *fp = fopen("VFDump_mb.gba", "rb");
 
@@ -231,6 +248,9 @@ int main(void)
 	{
 		return 4;
 	}*/
+#ifndef _WIN32
+    ioperm(dataPort, 3 , true);
+#endif
 
     initPort();
 
@@ -340,7 +360,11 @@ int main(void)
 		// PRINT_CMD
 		case 0x50525400:
 			CmdPrint(r & 0xff);
+#ifdef _WIN32
             Sleep(100);
+#else
+            usleep(100*1000);
+#endif
 			break;
 
 		// DPUTC_CMD
@@ -366,7 +390,11 @@ int main(void)
 		// FWRITE_CMD
 		case 0x46575200:
 			CmdFwrite();
+#ifdef _WIN32
             Sleep(100);
+#else
+            usleep(100*1000);
+#endif
 			break;
 
 		// FCLOSE_CMD
@@ -389,7 +417,11 @@ int main(void)
 			break;
 		}
 
+#ifdef _WIN32
         Sleep(sleep1);
+#else
+        usleep(sleep1*1000);
+#endif
 		r = Spi32(0);
 	}
 }
@@ -422,7 +454,11 @@ void CmdPrint(uint32_t cnt)
 void CmdPut(uint32_t chr)
 {
 	printf("%c", chr);
+#ifdef _WIN32
     Sleep(sleep1);
+#else
+    usleep(sleep1*1000);
+#endif
 }
 //---------------------------------------------------------------------------
 void CmdFopen(uint32_t len)
@@ -522,7 +558,11 @@ void CmdFread(void)
 		r += d1;
 
 		Spi32(r);
+#ifdef _WIN32
         Sleep(sleep2);
+#else
+        usleep(sleep2*1000);
+#endif
 	}
 
 //	printf("fread %d %d\n", size, count);
@@ -551,7 +591,11 @@ uint32_t Spi32(uint32_t w)
     recv[2] = gb_sendbyte(send[2]);
     recv[3] = gb_sendbyte(send[3]);
 
+#ifdef _WIN32
     lptdelay(8); // previously 64
+#else
+    lptdelay(16); // 8 ok for win but gives missing bytes on linux
+#endif
 	//spiXfer(spi, send, recv, 4);
 
 	uint32_t ret = 0;
