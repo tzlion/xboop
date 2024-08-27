@@ -340,6 +340,7 @@ int main(void)
 		// PRINT_CMD
 		case 0x50525400:
 			CmdPrint(r & 0xff);
+            Sleep(1000);
 			break;
 
 		// DPUTC_CMD
@@ -365,6 +366,7 @@ int main(void)
 		// FWRITE_CMD
 		case 0x46575200:
 			CmdFwrite();
+            Sleep(1000);
 			break;
 
 		// FCLOSE_CMD
@@ -387,7 +389,7 @@ int main(void)
 			break;
 		}
 
-        Sleep(1000);
+        Sleep(sleep1);
 		r = Spi32(0);
 	}
 }
