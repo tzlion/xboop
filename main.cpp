@@ -35,7 +35,7 @@ FILE* fpSave;
 //---------------------------------------------------------------------------
 int main(void)
 {
-    init();
+    initPort(0x378, true);
 
 	FILE *fp = fopen("VFDump_mb.gba", "rb");
 
@@ -59,21 +59,6 @@ int main(void)
 
 	uint32_t r, w, w2;
 	uint32_t i, bit;
-
-	/*if(gpioInitialise() < 0)
-	{
-		return 3;
-	}
-
-	spi = spiOpen(0, 50000, 3);
-
-	if(spi < 0)
-	{
-		return 4;
-	}*/
-
-
-    initPort();
 
 	Spi32WaitPrint(0x00006202, 0x72026202, "Looking for GBA");
 
