@@ -3,4 +3,6 @@ project(mbredo)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(mbredo main.cpp)
+add_executable(mbredo main.cpp
+        ppgb.cpp
+        ppgb.h)
