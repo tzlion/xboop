@@ -1,10 +1,17 @@
 #include "ppgb.h"
 #include <stdio.h>
-#ifdef _WIN32
+
+#ifdef __linux__
+#include <sys/io.h>
+#include <unistd.h>
+#elif defined(__FreeBSD__)
+#include <sys/types.h>
+#include <machine/cpufunc.h>
+#include <machine/sysarch.h>
+#elif defined(_WIN32)
 #include "windows.h"
 #else
-#include <unistd.h>
-#include <sys/io.h>
+#error Unsupported platform
 #endif
 
 #ifdef _WIN32
@@ -27,8 +34,10 @@ int init()
         return -1;
     }
 #endif
-#ifndef _WIN32
+#ifdef __linux__
     ioperm(dataPort, 3 , true);
+#elif defined(__FreeBSD__)
+    i386_set_ioperm(dataPort, 3, true);
 #endif
     return 1;
 }
@@ -46,8 +55,10 @@ void outportb(unsigned short port, unsigned char value)
 {
 #ifdef _WIN32
     gfpOut32(port,value);
-#else
-    outb(value,port);
+#elif defined(__FreeBSD__)
+    outb(port,value);
+#elif defined(__linux__)
+   outb(value,port);
 #endif
 }
 
@@ -115,7 +126,7 @@ void lptdelay(int amt)
         delayRead();
 }
 
-U8 gb_sendbyte(U8 value)
+U8 transferByte(U8 value)
 {
     U8 read = 0;
     for(int i=7;i>=0;i--) {
@@ -129,24 +140,11 @@ U8 gb_sendbyte(U8 value)
 
         writeToGb(v, 1);
     }
-    // lptdelay(64);
-    return read;
-}
-
-U8 gb_readbyte()
-{
-    U8 read = 0;
-    for(int i=7;i>=0;i--) {
-        writeToGb(0, 1);
-        writeToGb(0, 0);
-
-        if(readFromGb())
-            read |= (1<<i);
-
-        writeToGb(0, 1);
-    }
-    // delay between bytes
-    lptdelay(64);
+#ifdef _WIN32
+    lptdelay(2); // previously 64
+#else
+    lptdelay(4); // 2 ok for win but gives missing bytes on linux
+#endif
     return read;
 }
 

@@ -407,16 +407,11 @@ uint32_t Spi32(uint32_t w)
 	send[1] = (w & 0x00ff0000) >> 16;
 	send[0] = (w & 0xff000000) >> 24;
 
-    recv[0] = gb_sendbyte(send[0]);
-    recv[1] = gb_sendbyte(send[1]);
-    recv[2] = gb_sendbyte(send[2]);
-    recv[3] = gb_sendbyte(send[3]);
+    recv[0] = transferByte(send[0]);
+    recv[1] = transferByte(send[1]);
+    recv[2] = transferByte(send[2]);
+    recv[3] = transferByte(send[3]);
 
-#ifdef _WIN32
-    lptdelay(8); // previously 64
-#else
-    lptdelay(16); // 8 ok for win but gives missing bytes on linux
-#endif
 	//spiXfer(spi, send, recv, 4);
 
 	uint32_t ret = 0;

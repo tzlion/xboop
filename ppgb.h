@@ -40,8 +40,6 @@ static unsigned short controlPort = 0x037a;
 int init();
 void initPort();
 void deinitPort();
-void lptdelay(int amt);
-U8 gb_sendbyte(U8 value);
-U8 gb_readbyte();
+U8 transferByte(U8 value);
 
 #endif //MBREDO_PPGB_H
