@@ -35,7 +35,7 @@ FILE* fpSave;
 //---------------------------------------------------------------------------
 int main(void)
 {
-    initPort(0x378, true);
+    initPort(0x378, 1);
 
 	FILE *fp = fopen("VFDump_mb.gba", "rb");
 

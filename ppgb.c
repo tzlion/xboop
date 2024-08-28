@@ -21,7 +21,7 @@ lpOut32 gfpOut32;
 lpInp32 gfpInp32;
 #endif
 
-bool xbooCompat;
+U8 xbooCompat;
 unsigned short dataPort;
 unsigned short statusPort;
 unsigned short controlPort;
@@ -73,7 +73,7 @@ void outportb(unsigned short port, unsigned char value)
 
 /******************************************************************************/
 
-void writeToGb(U8 value, bool clock)
+void writeToGb(U8 value, U8 clock)
 {
     if (xbooCompat) {
         U8 ctrl = inportb(controlPort) & 0xFC;
@@ -85,7 +85,7 @@ void writeToGb(U8 value, bool clock)
     }
 }
 
-bool readFromGb()
+U8 readFromGb()
 {
     if (xbooCompat) {
         U8 stat = inportb(statusPort);
@@ -105,14 +105,16 @@ void delayRead()
 
 void lptdelay(int amt)
 {
-    for(int i=0;i<amt;i++)
+    int i;
+    for(i=0;i<amt;i++)
         delayRead();
 }
 
 U8 transferByte(U8 value)
 {
     U8 read = 0;
-    for(int i=7;i>=0;i--) {
+    int i;
+    for(i=7;i>=0;i--) {
         U8 v = (value>>i)&1;
 
         writeToGb(v, 1);
@@ -133,7 +135,7 @@ U8 transferByte(U8 value)
 
 //======================================================================
 
-int initPort(unsigned short basePort, bool xbooCable)
+int initPort(unsigned short basePort, U8 xbooCable)
 {
     xbooCompat = xbooCable;
     dataPort = basePort;
