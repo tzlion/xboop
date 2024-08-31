@@ -25,6 +25,7 @@ U8 xbooCompat;
 unsigned short dataPort;
 unsigned short statusPort;
 unsigned short controlPort;
+int delay;
 
 enum {
     STATUS_BUSY				= 0x80,
@@ -125,20 +126,17 @@ U8 transferByte(U8 value)
 
         writeToGb(v, 1);
     }
-#ifdef _WIN32
-    lptdelay(2); // previously 64
-#else
-    lptdelay(4); // 2 ok for win but gives missing bytes on linux
-#endif
+    lptdelay(delay);
     return read;
 }
 
 //======================================================================
 
-int initPort(unsigned short basePort, U8 xbooCable)
+int initPort(unsigned short basePort, U8 xbooCable, int delayAfterTransfer)
 {
     xbooCompat = xbooCable;
     dataPort = basePort;
+    delay = delayAfterTransfer;
     statusPort = basePort + 1;
     controlPort = basePort + 2;
 #ifdef _WIN32

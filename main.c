@@ -31,11 +31,17 @@ int spi;
 int sleep1 = 10;
 int sleep2 = 2;
 
+#ifdef _WIN32
+int portDelay = 2;
+#else
+int portDelay = 4;
+#endif
+
 FILE* fpSave;
 //---------------------------------------------------------------------------
 int main(void)
 {
-    initPort(0x378, 1);
+    initPort(0x378, 1, portDelay);
 
 	FILE *fp = fopen("VFDump_mb.gba", "rb");
 

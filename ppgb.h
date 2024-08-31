@@ -4,7 +4,7 @@
 
 typedef unsigned char		U8;
 
-int initPort(unsigned short basePort, U8 xbooCable);
+int initPort(unsigned short basePort, U8 xbooCable, int delayAfterTransfer);
 void deinitPort();
 U8 transferByte(U8 value);
 
