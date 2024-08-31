@@ -168,13 +168,13 @@ void determineDelay()
     delay2 = timingtest(0);
     if (delay2 < mindelay) mindelay = delay2;
 
-    double desiredsecs = 0.25;
+    double desiredsecs = 0.2;
     if (minsecs < desiredsecs) {
         double desireddelayMicrosecs = (desiredsecs - minsecs) * 1000000;
         double delayTimeMicrosecs = mindelay * 1000000;
-        int inputsToAchieveDelay = (int)(desireddelayMicrosecs / delayTimeMicrosecs) + 1;
+        int inputsToAchieveDelay = (int)(desireddelayMicrosecs / delayTimeMicrosecs) + 4;
         delay = inputsToAchieveDelay;
-    } else delay = 1;
+    } else delay = 4;
     printf("Using delay %i\n", delay);
 }
 
