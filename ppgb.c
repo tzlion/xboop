@@ -147,7 +147,7 @@ double timingtest(int tf)
     return (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 }
 
-void determineDelay()
+void determineDelay(int minDelay, int maxDelay)
 {
     printf("Testing timing... ");
     delay = 0;
@@ -168,25 +168,27 @@ void determineDelay()
     delay2 = timingtest(0);
     if (delay2 < mindelay) mindelay = delay2;
 
-    double desiredsecs = 0.2;
+    double desiredsecs = 0.21;
     if (minsecs < desiredsecs) {
         double desireddelayMicrosecs = (desiredsecs - minsecs) * 1000000;
         double delayTimeMicrosecs = mindelay * 1000000;
-        int inputsToAchieveDelay = (int)(desireddelayMicrosecs / delayTimeMicrosecs) + 4;
+        int inputsToAchieveDelay = (int)(desireddelayMicrosecs / delayTimeMicrosecs);
         delay = inputsToAchieveDelay;
-    } else delay = 4;
+    } else delay = 0;
+    if (delay < minDelay) delay = minDelay;
+    if (delay > maxDelay && maxDelay >= 0) delay = maxDelay;
     printf("Using delay %i\n", delay);
 }
 
 //======================================================================
 
-int initPort(unsigned short basePort, U8 xbooCable, int delayAfterTransfer)
+int initPort(unsigned short basePort, U8 xbooCable, int minDelay, int maxDelay)
 {
     xbooCompat = xbooCable;
     dataPort = basePort;
     statusPort = basePort + 1;
     controlPort = basePort + 2;
-    delay = delayAfterTransfer >= 0 ? delayAfterTransfer : 10;
+    delay = minDelay;
 #ifdef _WIN32
     HINSTANCE hInpOutDll;
     hInpOutDll = LoadLibrary("inpout32.dll");
@@ -215,8 +217,8 @@ int initPort(unsigned short basePort, U8 xbooCable, int delayAfterTransfer)
         outportb(dataPort, D_CLOCK_HIGH);
     }
 
-    if (delayAfterTransfer < 0) {
-        determineDelay();
+    if (minDelay != maxDelay) {
+        determineDelay(minDelay, maxDelay);
     }
 
     return 1;
