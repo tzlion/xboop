@@ -1,5 +1,6 @@
 #include "ppgb.h"
 #include <stdio.h>
+#include <sys/time.h>
 
 #ifdef __linux__
 #include <sys/io.h>
@@ -130,15 +131,62 @@ U8 transferByte(U8 value)
     return read;
 }
 
+double timingtest(int tf)
+{
+    struct timeval stop, start;
+    gettimeofday(&start, NULL);
+    int x = 0;
+    for(x=0;x<1000;x++) {
+        if (tf)
+            transferByte(0);
+        else
+            delayRead();
+    }
+
+    gettimeofday(&stop, NULL);
+    return (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
+}
+
+void determineDelay()
+{
+    printf("Testing timing... ");
+    delay = 0;
+
+    double minsecs = timingtest(1);
+    double secs2 = timingtest(1);
+    if (secs2 < minsecs) minsecs = secs2;
+    secs2 = timingtest(1);
+    if (secs2 < minsecs) minsecs = secs2;
+    secs2 = timingtest(1);
+    if (secs2 < minsecs) minsecs = secs2;
+
+    double mindelay = timingtest(0);
+    double delay2 = timingtest(0);
+    if (delay2 < mindelay) mindelay = delay2;
+    delay2 = timingtest(0);
+    if (delay2 < mindelay) mindelay = delay2;
+    delay2 = timingtest(0);
+    if (delay2 < mindelay) mindelay = delay2;
+
+    double desiredsecs = 0.25;
+    if (minsecs < desiredsecs) {
+        double desireddelayMicrosecs = (desiredsecs - minsecs) * 1000000;
+        double delayTimeMicrosecs = mindelay * 1000000;
+        int inputsToAchieveDelay = (int)(desireddelayMicrosecs / delayTimeMicrosecs) + 1;
+        delay = inputsToAchieveDelay;
+    } else delay = 1;
+    printf("Using delay %i\n", delay);
+}
+
 //======================================================================
 
 int initPort(unsigned short basePort, U8 xbooCable, int delayAfterTransfer)
 {
     xbooCompat = xbooCable;
     dataPort = basePort;
-    delay = delayAfterTransfer;
     statusPort = basePort + 1;
     controlPort = basePort + 2;
+    delay = delayAfterTransfer >= 0 ? delayAfterTransfer : 10;
 #ifdef _WIN32
     HINSTANCE hInpOutDll;
     hInpOutDll = LoadLibrary("inpout32.dll");
@@ -165,6 +213,10 @@ int initPort(unsigned short basePort, U8 xbooCable, int delayAfterTransfer)
         outportb(controlPort, inportb(controlPort)&(~CTL_MODE_DATAIN));
         outportb(dataPort, 0xFF);
         outportb(dataPort, D_CLOCK_HIGH);
+    }
+
+    if (delayAfterTransfer < 0) {
+        determineDelay();
     }
 
     return 1;
