@@ -39,11 +39,41 @@ int portDelay = 4;
 
 FILE* fpSave;
 //---------------------------------------------------------------------------
-int main(void)
+int main(int argc, char* argv[])
 {
-    initPort(0xd010, 1, 2, -1);
+    int xbooCompat = 0;
+    unsigned short basePort = 0x378;
 
-	FILE *fp = fopen("VFDump_mb.gba", "rb");
+    if (argc < 2) {
+        printf("Filename required\n");
+        return -1;
+    }
+    if (argc >= 3) {
+        int argno;
+        for (argno = 2; argno < argc; argno++) {
+            if ( memcmp(argv[argno],"-x",2) == 0 ) {
+                xbooCompat = 1;
+            } else if ( memcmp(argv[argno],"-p",2) == 0 && strlen(argv[argno]) == 6) {
+                char portStr[5];
+                strncpy(portStr, argv[argno]+2, 5);
+                char *endptr;
+                long port = strtol(portStr, &endptr, 16);
+                if (endptr != portStr && *endptr == '\0') {
+                    basePort = (unsigned short)port;
+                }
+            }
+        }
+    }
+
+    if (xbooCompat) {
+        printf("Setting up port %04x (xboo cable)...\n", basePort);
+    } else {
+        printf("Setting up port %04x (gblink cable)...\n", basePort);
+    }
+
+    initPort(basePort, xbooCompat, 2, -1);
+
+	FILE *fp = fopen(argv[1], "rb");
 
 	if(fp == NULL)
 	{
