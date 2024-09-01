@@ -201,9 +201,9 @@ int initPort(unsigned short basePort, U8 xbooCable, int minDelay, int maxDelay)
     }
 #endif
 #ifdef __linux__
-    ioperm(dataPort, 3 , true);
+    ioperm(dataPort, 3 , 1);
 #elif defined(__FreeBSD__)
-    i386_set_ioperm(dataPort, 3, true);
+    i386_set_ioperm(dataPort, 3, 1);
 #endif
 
     // don't know if this is needed
