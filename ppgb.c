@@ -20,6 +20,7 @@ typedef void(__stdcall *lpOut32)(short, short);
 typedef short(__stdcall *lpInp32)(short);
 lpOut32 gfpOut32;
 lpInp32 gfpInp32;
+HINSTANCE hInpOutDll;
 #endif
 
 U8 xbooCompat;
@@ -54,6 +55,7 @@ enum {
 };
 
 /******************************************************************************/
+
 unsigned char inportb(unsigned short port)
 {
 #ifdef _WIN32
@@ -62,6 +64,7 @@ unsigned char inportb(unsigned short port)
     return inb(port);
 #endif
 }
+
 void outportb(unsigned short port, unsigned char value)
 {
 #ifdef _WIN32
@@ -135,16 +138,28 @@ double timingtest(int tf)
 {
     struct timeval stop, start;
     gettimeofday(&start, NULL);
-    int x = 0;
-    for(x=0;x<1000;x++) {
+    int x;
+    for(x = 0; x < 1000; x++) {
         if (tf)
             transferByte(0);
         else
             delayRead();
     }
-
     gettimeofday(&stop, NULL);
     return (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
+}
+
+double mintimingtest(int tf)
+{
+    double minsecs = -1;
+    int x;
+    for (x = 0; x < 4; x++) {
+        double secs = timingtest(tf);
+        if (minsecs < 0 || secs < minsecs) {
+            minsecs = secs;
+        }
+    }
+    return minsecs;
 }
 
 void determineDelay(int minDelay, int maxDelay)
@@ -152,21 +167,8 @@ void determineDelay(int minDelay, int maxDelay)
     printf("Testing timing... ");
     delay = 0;
 
-    double minsecs = timingtest(1);
-    double secs2 = timingtest(1);
-    if (secs2 < minsecs) minsecs = secs2;
-    secs2 = timingtest(1);
-    if (secs2 < minsecs) minsecs = secs2;
-    secs2 = timingtest(1);
-    if (secs2 < minsecs) minsecs = secs2;
-
-    double mindelay = timingtest(0);
-    double delay2 = timingtest(0);
-    if (delay2 < mindelay) mindelay = delay2;
-    delay2 = timingtest(0);
-    if (delay2 < mindelay) mindelay = delay2;
-    delay2 = timingtest(0);
-    if (delay2 < mindelay) mindelay = delay2;
+    double minsecs = mintimingtest(1);
+    double mindelay = mintimingtest(0);
 
     double desiredsecs = 0.21;
     if (minsecs < desiredsecs) {
@@ -190,7 +192,6 @@ int initPort(unsigned short basePort, U8 xbooCable, int minDelay, int maxDelay)
     controlPort = basePort + 2;
     delay = minDelay;
 #ifdef _WIN32
-    HINSTANCE hInpOutDll;
     hInpOutDll = LoadLibrary("inpout32.dll");
     if (hInpOutDll != NULL) {
         gfpOut32 = (lpOut32)GetProcAddress(hInpOutDll, "Out32");
@@ -236,4 +237,8 @@ void deinitPort()
         outportb(controlPort, inportb(controlPort)&(~CTL_MODE_DATAIN));
         outportb(dataPort, 0xFF);
     }
+
+#ifdef _WIN32
+    FreeLibrary(hInpOutDll);
+#endif
 }
