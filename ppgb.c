@@ -148,7 +148,7 @@ double get1000xTiming(int transfer)
     gettimeofday(&start, NULL);
     int x;
     for(x = 0; x < 1000; x++) {
-        if (tf)
+        if (transfer)
             transferByte(0);
         else
             delayRead();
