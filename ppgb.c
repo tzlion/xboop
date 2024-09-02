@@ -209,7 +209,7 @@ int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay, Pri
         gfpOut32 = (lpOut32)GetProcAddress(hInpOutDll, "Out32");
         gfpInp32 = (lpInp32)GetProcAddress(hInpOutDll, "Inp32");
     } else {
-        if (printFunction) printFunction("Unable to load inpout32.dll\n");
+        if (printFunction) printFunction("Unable to load inpout32.dll");
         return -1;
     }
 #endif
@@ -220,16 +220,16 @@ int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay, Pri
 #endif
 
     char msg[100];
-    sprintf(msg, "Using port %04x, %s cable\n", basePort, xbooCable ? "xboo" : "gblink");
+    sprintf(msg, "Using port %04x, %s cable", basePort, xbooCable ? "xboo" : "gblink");
     if (printFunction) printFunction(msg);
 
     initPort();
 
     if (minDelay != maxDelay) {
-        if (printFunction) printFunction("Testing timing...\n");
+        if (printFunction) printFunction("Testing timing...");
         determineDelay(minDelay, maxDelay);
     }
-    sprintf(msg, "Using delay %i\n", delay);
+    sprintf(msg, "Using delay %i", delay);
     if (printFunction) printFunction(msg);
 
     return 1;

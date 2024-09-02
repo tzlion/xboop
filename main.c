@@ -39,9 +39,9 @@ int portDelay = 4;
 
 FILE* fpSave;
 
-void addMessage(const char* message)
+void printMessage(const char* message)
 {
-    printf(message);
+    printf("%s\n", message);
 }
 
 //---------------------------------------------------------------------------
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    init(basePort, xbooCompat, 2, -1, addMessage);
+    init(basePort, xbooCompat, 2, -1, printMessage);
 
 	FILE *fp = fopen(argv[1], "rb");
 
