@@ -178,7 +178,6 @@ double getMin1000xTiming(int transfer)
 
 void determineDelay(int minDelay, int maxDelay)
 {
-    printf("Testing timing... ");
     delay = 0;
 
     double transferTiming = getMin1000xTiming(1);
@@ -192,12 +191,11 @@ void determineDelay(int minDelay, int maxDelay)
     }
     if (delay < minDelay) delay = minDelay;
     if (delay > maxDelay && maxDelay >= 0) delay = maxDelay;
-    printf("Using delay %i\n", delay);
 }
 
 /******************************************************************************/
 
-int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay)
+int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay, PrintFunction printFunction)
 {
     xbooCompat = xbooCable;
     dataPort = basePort;
@@ -211,7 +209,7 @@ int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay)
         gfpOut32 = (lpOut32)GetProcAddress(hInpOutDll, "Out32");
         gfpInp32 = (lpInp32)GetProcAddress(hInpOutDll, "Inp32");
     } else {
-        printf("Unable to load inpout32.dll\n");
+        if (printFunction) printFunction("Unable to load inpout32.dll\n");
         return -1;
     }
 #endif
@@ -221,11 +219,18 @@ int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay)
     i386_set_ioperm(dataPort, 3, 1);
 #endif
 
+    char msg[100];
+    sprintf(msg, "Using port %04x, %s cable\n", basePort, xbooCable ? "xboo" : "gblink");
+    if (printFunction) printFunction(msg);
+
     initPort();
 
     if (minDelay != maxDelay) {
+        if (printFunction) printFunction("Testing timing...\n");
         determineDelay(minDelay, maxDelay);
     }
+    sprintf(msg, "Using delay %i\n", delay);
+    if (printFunction) printFunction(msg);
 
     return 1;
 }

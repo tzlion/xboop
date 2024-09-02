@@ -38,6 +38,12 @@ int portDelay = 4;
 #endif
 
 FILE* fpSave;
+
+void addMessage(const char* message)
+{
+    printf(message);
+}
+
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
@@ -65,13 +71,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (xbooCompat) {
-        printf("Setting up port %04x (xboo cable)...\n", basePort);
-    } else {
-        printf("Setting up port %04x (gblink cable)...\n", basePort);
-    }
-
-    init(basePort, xbooCompat, 2, -1);
+    init(basePort, xbooCompat, 2, -1, addMessage);
 
 	FILE *fp = fopen(argv[1], "rb");
 

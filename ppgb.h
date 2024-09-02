@@ -7,6 +7,7 @@
 #define PPGB_H
 
 typedef unsigned char U8;
+typedef void(*PrintFunction)(const char*);
 
 /**
  * Initialise the port. Must be called before transferring any data
@@ -15,9 +16,10 @@ typedef unsigned char U8;
  * @param minDelay Minimum delay per byte (in number of port accesses) - 2 seems to be good for GBA and 8 for GB
  * @param maxDelay Maximum delay per byte, set to -1 for no max
  * Actual delay will be determined automatically between min and max. Set them both the same for a specific delay
+ * @param printFunction function to log port initialisation info, set to null for no logging
  * @return 1 if success, -1 if failed
  */
-int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay);
+int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay, PrintFunction printFunction);
 
 /**
  * Deinitialise the port. Probably not super necessary unless you're going to initialise it again afterwards
