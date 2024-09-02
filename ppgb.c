@@ -1,4 +1,10 @@
+/**
+ * Parallel port communication with Game Boy consoles
+ * by taizou, based on code from gblinkdl by Brian Provinciano
+ */
+
 #include "ppgb.h"
+
 #include <stdio.h>
 #include <sys/time.h>
 
@@ -198,6 +204,7 @@ int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay)
     statusPort = basePort + 1;
     controlPort = basePort + 2;
     delay = minDelay;
+
 #ifdef _WIN32
     hInpOutDll = LoadLibrary("inpout32.dll");
     if (hInpOutDll != NULL) {
