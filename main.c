@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <time.h>
 #ifdef _WIN32
 #include "windows.h"
 #else
@@ -9,8 +8,6 @@
 #include <sys/io.h>
 #endif
 #include "ppgb.h"
-
-// gcc -Wall -o SendSave SendSave.c -lpigpio
 
 //---------------------------------------------------------------------------
 uint32_t Spi32(uint32_t w);
@@ -31,17 +28,20 @@ int spi;
 int sleep1 = 10;
 int sleep2 = 2;
 
-#ifdef _WIN32
-int portDelay = 2;
-#else
-int portDelay = 4;
-#endif
-
 FILE* fpSave;
 
 void printMessage(const char* message)
 {
     printf("%s\n", message);
+}
+
+void millisleep(int millisecs)
+{
+#ifdef _WIN32
+    Sleep(millisecs);
+#else
+    usleep(millisecs*1000);
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -202,11 +202,7 @@ int main(int argc, char* argv[])
 		// PRINT_CMD
 		case 0x50525400:
 			CmdPrint(r & 0xff);
-#ifdef _WIN32
-            Sleep(100);
-#else
-            usleep(100*1000);
-#endif
+            millisleep(100);
 			break;
 
 		// DPUTC_CMD
@@ -232,11 +228,7 @@ int main(int argc, char* argv[])
 		// FWRITE_CMD
 		case 0x46575200:
 			CmdFwrite();
-#ifdef _WIN32
-            Sleep(100);
-#else
-            usleep(100*1000);
-#endif
+            millisleep(100);
 			break;
 
 		// FCLOSE_CMD
@@ -259,11 +251,7 @@ int main(int argc, char* argv[])
 			break;
 		}
 
-#ifdef _WIN32
-        Sleep(sleep1);
-#else
-        usleep(sleep1*1000);
-#endif
+        millisleep(sleep1);
 		r = Spi32(0);
 	}
 }
@@ -296,11 +284,7 @@ void CmdPrint(uint32_t cnt)
 void CmdPut(uint32_t chr)
 {
 	printf("%c", chr);
-#ifdef _WIN32
-    Sleep(sleep1);
-#else
-    usleep(sleep1*1000);
-#endif
+    millisleep(sleep1);
 }
 //---------------------------------------------------------------------------
 void CmdFopen(uint32_t len)
@@ -400,11 +384,7 @@ void CmdFread(void)
 		r += d1;
 
 		Spi32(r);
-#ifdef _WIN32
-        Sleep(sleep2);
-#else
-        usleep(sleep2*1000);
-#endif
+        millisleep(sleep1);
 	}
 
 //	printf("fread %d %d\n", size, count);
