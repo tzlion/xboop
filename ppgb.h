@@ -1,11 +1,11 @@
 
-#ifndef MBREDO_PPGB_H
-#define MBREDO_PPGB_H
+#ifndef PPGB_H
+#define PPGB_H
 
-typedef unsigned char		U8;
+typedef unsigned char U8;
 
-int initPort(unsigned short basePort, U8 xbooCable, int minDelay, int maxDelay);
-void deinitPort();
+int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay);
+void deinit();
 U8 transferByte(U8 value);
 
-#endif //MBREDO_PPGB_H
+#endif //PPGB_H

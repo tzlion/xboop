@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
         printf("Setting up port %04x (gblink cable)...\n", basePort);
     }
 
-    initPort(basePort, xbooCompat, 2, -1);
+    init(basePort, xbooCompat, 2, -1);
 
 	FILE *fp = fopen(argv[1], "rb");
 

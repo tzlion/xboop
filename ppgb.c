@@ -29,30 +29,10 @@ unsigned short statusPort;
 unsigned short controlPort;
 int delay;
 
-enum {
-    STATUS_BUSY				= 0x80,
-    STATUS_ACK				= 0x40,
-    STATUS_PAPER			= 0x20,
-    STATUS_SELECTIN			= 0x10,
-    STATUS_ERROR			= 0x08,
-    STATUS_NIRQ				= 0x04,
-};
-
-enum {
-    CTL_MODE_DATAIN			= 0x20,
-    CTL_MODE_IRQACK			= 0x10,
-    CTL_SELECT				= 0x08,
-    CTL_INIT				= 0x04,
-    CTL_LINEFEED			= 0x02,
-    CTL_STROBE				= 0x01,
-};
-
-enum {
-    // .... ..cd
-    //	c:	clock
-    //	d:	data (serial bit)
-    D_CLOCK_HIGH	= 0x02,
-};
+#define STATUS_BUSY 0x80
+#define STATUS_ACK 0x40
+#define CTL_MODE_DATAIN 0x20
+#define D_CLOCK_HIGH 0x02
 
 /******************************************************************************/
 
@@ -70,9 +50,9 @@ void outportb(unsigned short port, unsigned char value)
 #ifdef _WIN32
     gfpOut32(port,value);
 #elif defined(__FreeBSD__)
-    outb(port,value);
+    outb(port, value);
 #elif defined(__linux__)
-   outb(value,port);
+   outb(value, port);
 #endif
 }
 
@@ -106,7 +86,35 @@ void delayRead()
     inportb(dataPort);
 }
 
-////////////////////////////////////////////////////////////////////////////////
+void initPort()
+{
+    // don't know if this is needed
+    if (xbooCompat) {
+        outportb(controlPort, inportb(controlPort)&(~CTL_MODE_DATAIN));
+        writeToGb(1, 1);
+        writeToGb(0, 1);
+    } else {
+        outportb(controlPort, inportb(controlPort)&(~CTL_MODE_DATAIN));
+        outportb(dataPort, 0xFF);
+        outportb(dataPort, D_CLOCK_HIGH);
+    }
+}
+
+void deinitPort()
+{
+    // really don't know if this is needed
+    if (xbooCompat) {
+        writeToGb(0, 1);
+        outportb(controlPort, inportb(controlPort)&(~CTL_MODE_DATAIN));
+        writeToGb(1, 1);
+    } else {
+        outportb(dataPort, D_CLOCK_HIGH);
+        outportb(controlPort, inportb(controlPort)&(~CTL_MODE_DATAIN));
+        outportb(dataPort, 0xFF);
+    }
+}
+
+/******************************************************************************/
 
 void lptdelay(int amt)
 {
@@ -134,7 +142,7 @@ U8 transferByte(U8 value)
     return read;
 }
 
-double timingtest(int tf)
+double get1000xTiming(int transfer)
 {
     struct timeval stop, start;
     gettimeofday(&start, NULL);
@@ -149,12 +157,12 @@ double timingtest(int tf)
     return (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
 }
 
-double mintimingtest(int tf)
+double getMin1000xTiming(int transfer)
 {
     double minsecs = -1;
     int x;
     for (x = 0; x < 4; x++) {
-        double secs = timingtest(tf);
+        double secs = get1000xTiming(transfer);
         if (minsecs < 0 || secs < minsecs) {
             minsecs = secs;
         }
@@ -167,24 +175,23 @@ void determineDelay(int minDelay, int maxDelay)
     printf("Testing timing... ");
     delay = 0;
 
-    double minsecs = mintimingtest(1);
-    double mindelay = mintimingtest(0);
+    double transferTiming = getMin1000xTiming(1);
+    double delayTiming = getMin1000xTiming(0);
 
-    double desiredsecs = 0.21;
-    if (minsecs < desiredsecs) {
-        double desireddelayMicrosecs = (desiredsecs - minsecs) * 1000000;
-        double delayTimeMicrosecs = mindelay * 1000000;
-        int inputsToAchieveDelay = (int)(desireddelayMicrosecs / delayTimeMicrosecs);
-        delay = inputsToAchieveDelay;
-    } else delay = 0;
+    double minimumTiming = 0.21;
+    if (transferTiming < minimumTiming) {
+        double desiredDelayMicrosecs = (minimumTiming - transferTiming) * 1000000;
+        double delayTimeMicrosecs = delayTiming * 1000000;
+        delay = (int)(desiredDelayMicrosecs / delayTimeMicrosecs);
+    }
     if (delay < minDelay) delay = minDelay;
     if (delay > maxDelay && maxDelay >= 0) delay = maxDelay;
     printf("Using delay %i\n", delay);
 }
 
-//======================================================================
+/******************************************************************************/
 
-int initPort(unsigned short basePort, U8 xbooCable, int minDelay, int maxDelay)
+int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay)
 {
     xbooCompat = xbooCable;
     dataPort = basePort;
@@ -207,16 +214,7 @@ int initPort(unsigned short basePort, U8 xbooCable, int minDelay, int maxDelay)
     i386_set_ioperm(dataPort, 3, 1);
 #endif
 
-    // don't know if this is needed
-    if (xbooCompat) {
-        outportb(controlPort, inportb(controlPort)&(~CTL_MODE_DATAIN));
-        writeToGb(1, 1);
-        writeToGb(0, 1);
-    } else {
-        outportb(controlPort, inportb(controlPort)&(~CTL_MODE_DATAIN));
-        outportb(dataPort, 0xFF);
-        outportb(dataPort, D_CLOCK_HIGH);
-    }
+    initPort();
 
     if (minDelay != maxDelay) {
         determineDelay(minDelay, maxDelay);
@@ -225,19 +223,9 @@ int initPort(unsigned short basePort, U8 xbooCable, int minDelay, int maxDelay)
     return 1;
 }
 
-void deinitPort()
+void deinit()
 {
-    // really don't know if this is needed
-    if (xbooCompat) {
-        writeToGb(0, 1);
-        outportb(controlPort, inportb(controlPort)&(~CTL_MODE_DATAIN));
-        writeToGb(1, 1);
-    } else {
-        outportb(dataPort, D_CLOCK_HIGH);
-        outportb(controlPort, inportb(controlPort)&(~CTL_MODE_DATAIN));
-        outportb(dataPort, 0xFF);
-    }
-
+    deinitPort();
 #ifdef _WIN32
     FreeLibrary(hInpOutDll);
 #endif
