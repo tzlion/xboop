@@ -25,7 +25,7 @@ void     CmdFtell(void);
 
 //---------------------------------------------------------------------------
 int sleep1 = 10;
-int sleep2 = 2;
+int bigsleep = 100;
 
 FILE* fpSave;
 
@@ -249,7 +249,6 @@ void CmdPrint(uint32_t cnt)
 		if(i % 4 == 0)
 		{
 			r = Transfer(0);
-       //     Sleep(sleep2);
 		}
 
 		c = r & 0xff;
@@ -257,13 +256,12 @@ void CmdPrint(uint32_t cnt)
 		if((c >= 0x20 && c <= 0x7E) || c == 0x0D || c == 0x0A)
 		{
 			printf("%c", c);
-       //     Sleep(sleep1);
 		}
 
 		r >>= 8;
 	}
 
-    millisleep(100);
+    millisleep(bigsleep);
 }
 //---------------------------------------------------------------------------
 void CmdPut(uint32_t chr)
@@ -326,17 +324,15 @@ void CmdFwrite(void)
 		if(i % 4 == 0)
 		{
 			r = Transfer(0);
-        //    Sleep(sleep2);
 		}
 
 		fputc(r & 0xff, fpSave);
 		r >>= 8;
 	}
 
-  //  Sleep(1000);
 	printf("fwrite END %d\n", size*count);
 
-    millisleep(100);
+    millisleep(bigsleep);
 }
 //---------------------------------------------------------------------------
 void CmdFclose(void)
