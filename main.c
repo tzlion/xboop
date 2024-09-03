@@ -17,17 +17,18 @@ void     TransferWaitPrint(uint32_t w, uint32_t comp, char* msg);
 void     CmdPrint(uint32_t cnt);
 void     CmdPut(uint32_t chr);
 void     CmdFopen(uint32_t len);
-void     CmdFseek(void);
-void     CmdFwrite(void);
-void     CmdFclose(void);
-void     CmdFread(void);
-void     CmdFtell(void);
+void     CmdFseek(uint32_t handle);
+void     CmdFwrite(uint32_t handle);
+void     CmdFclose(uint32_t handle);
+void     CmdFread(uint32_t handle);
+void     CmdFtell(uint32_t handle);
 
 //---------------------------------------------------------------------------
 int sleep1 = 10;
 int bigsleep = 100;
 
-FILE* fpSave;
+FILE* fpSave[255];
+int nextHandle = 0;
 
 void printMessage(const char* message)
 {
@@ -206,27 +207,27 @@ int main(int argc, char* argv[])
 
 		// FSEEK_CMD
 		case 0x46534B00:
-			CmdFseek();
+			CmdFseek(r & 0xff);
 			break;
 
 		// FWRITE_CMD
 		case 0x46575200:
-			CmdFwrite();
+			CmdFwrite(r & 0xff);
 			break;
 
 		// FCLOSE_CMD
 		case 0x434C5300:
-			CmdFclose();
+			CmdFclose(r & 0xff);
 			break;
 
 		// FREAD_CMD
 		case 0x46524400:
-			CmdFread();
+			CmdFread(r & 0xff);
 			break;
 
 		// FTELL_CMD
 		case 0x46544C00:
-			CmdFtell();
+			CmdFtell(r & 0xff);
 			break;
 
 		default:
@@ -295,24 +296,29 @@ void CmdFopen(uint32_t len)
 	ftype[0] = (r     ) & 0xff;
 	ftype[1] = (r >> 8) & 0xff;
 
-//	printf("fopen %s %s\n", fname, ftype);
-	fpSave = fopen(fname, ftype);
+    if (nextHandle > 255) {
+        printf("Too many file handles opened\n");
+        nextHandle = 0;
+    }
+    printf("fopen %s %s %02x\n", fname, ftype, nextHandle);
+	fpSave[nextHandle] = fopen(fname, ftype);
 
-	Transfer(0);
+	Transfer(nextHandle);
+    nextHandle++;
 }
 //---------------------------------------------------------------------------
-void CmdFseek(void)
+void CmdFseek(uint32_t handle)
 {
 	uint32_t offset = Transfer(0);
 	uint32_t origin = Transfer(0);
 
-//	printf("fseek %d %d\n", offset, origin);
-	fseek(fpSave, offset, origin);
+	printf("fseek %d %d\n", offset, origin);
+	fseek(fpSave[handle], offset, origin);
 }
 //---------------------------------------------------------------------------
-void CmdFwrite(void)
+void CmdFwrite(uint32_t handle)
 {
-//	printf("fwrite START\n");
+	printf("fwrite START\n");
 
 	uint32_t i, r;
 
@@ -326,7 +332,7 @@ void CmdFwrite(void)
 			r = Transfer(0);
 		}
 
-		fputc(r & 0xff, fpSave);
+		fputc(r & 0xff, fpSave[handle]);
 		r >>= 8;
 	}
 
@@ -335,13 +341,13 @@ void CmdFwrite(void)
     millisleep(bigsleep);
 }
 //---------------------------------------------------------------------------
-void CmdFclose(void)
+void CmdFclose(uint32_t handle)
 {
-//	printf("fclose\n");
-	fclose(fpSave);
+	printf("fclose\n");
+	fclose(fpSave[handle]);
 }
 //---------------------------------------------------------------------------
-void CmdFread(void)
+void CmdFread(uint32_t handle)
 {
 	uint32_t i, r;
 	uint32_t d1, d2, d3, d4;
@@ -351,10 +357,10 @@ void CmdFread(void)
 
 	for(i=0; i<size*count/4; i++)
 	{
-		d1 = fgetc(fpSave);
-		d2 = fgetc(fpSave);
-		d3 = fgetc(fpSave);
-		d4 = fgetc(fpSave);
+		d1 = fgetc(fpSave[handle]);
+		d2 = fgetc(fpSave[handle]);
+		d3 = fgetc(fpSave[handle]);
+		d4 = fgetc(fpSave[handle]);
 
 		r = 0;
 
@@ -370,15 +376,15 @@ void CmdFread(void)
         millisleep(sleep1);
 	}
 
-//	printf("fread %d %d\n", size, count);
+	printf("fread %d %d\n", size, count);
 }
 //---------------------------------------------------------------------------
-void CmdFtell(void)
+void CmdFtell(uint32_t handle)
 {
-	fseek(fpSave, 0, SEEK_END);
-	Transfer(ftell(fpSave));
+	fseek(fpSave[handle], 0, SEEK_END);
+	Transfer(ftell(fpSave[handle]));
 
-//	printf("ftell %d\n", ftell(fpSave));
+	printf("ftell %d\n", ftell(fpSave[handle]));
 }
 //---------------------------------------------------------------------------
 uint32_t Transfer(uint32_t w)
