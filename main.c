@@ -10,9 +10,9 @@
 #include "ppgb.h"
 
 //---------------------------------------------------------------------------
-uint32_t Spi32(uint32_t w);
-uint32_t Spi32Print(uint32_t w, char* msg);
-void     Spi32WaitPrint(uint32_t w, uint32_t comp, char* msg);
+uint32_t Transfer(uint32_t w);
+uint32_t TransferPrint(uint32_t w, char* msg);
+void     TransferWaitPrint(uint32_t w, uint32_t comp, char* msg);
 
 void     CmdPrint(uint32_t cnt);
 void     CmdPut(uint32_t chr);
@@ -24,7 +24,6 @@ void     CmdFread(void);
 void     CmdFtell(void);
 
 //---------------------------------------------------------------------------
-int spi;
 int sleep1 = 10;
 int sleep2 = 2;
 
@@ -96,10 +95,10 @@ int main(int argc, char* argv[])
 	uint32_t r, w, w2;
 	uint32_t i, bit;
 
-	Spi32WaitPrint(0x00006202, 0x72026202, "Looking for GBA");
+	TransferWaitPrint(0x00006202, 0x72026202, "Looking for GBA");
 
-	r = Spi32Print(0x00006202, "Found GBA");
-	r = Spi32Print(0x00006102, "Recognition OK");
+	TransferPrint(0x00006202, "Found GBA");
+	TransferPrint(0x00006102, "Recognition OK");
 
 	printf("                       ; Send Header\n");
 	for(i=0; i<=0x5f; i++)
@@ -108,20 +107,20 @@ int main(int argc, char* argv[])
 		w = getc(fp) << 8 | w;
 		fcnt += 2;
 
-		r = Spi32(w);
+		Transfer(w);
 	}
 
-	r = Spi32Print(0x00006200, "Transfer of header data complete");
-	r = Spi32Print(0x00006202, "Exchange master/slave info again");
+	TransferPrint(0x00006200, "Transfer of header data complete");
+	TransferPrint(0x00006202, "Exchange master/slave info again");
 
-	r = Spi32Print(0x000063d1, "Send palette data");
-	r = Spi32Print(0x000063d1, "Send palette data, receive 0x73hh****");
+	TransferPrint(0x000063d1, "Send palette data");
+	r = TransferPrint(0x000063d1, "Send palette data, receive 0x73hh****");
 
 	uint32_t m = ((r & 0x00ff0000) >>  8) + 0xffff00d1;
 	uint32_t h = ((r & 0x00ff0000) >> 16) + 0xf;
 
-	r = Spi32Print((((r >> 16) + 0xf) & 0xff) | 0x00006400, "Send handshake data");
-	r = Spi32Print((fsize - 0x190) / 4, "Send length info, receive seed 0x**cc****");
+	TransferPrint((((r >> 16) + 0xf) & 0xff) | 0x00006400, "Send handshake data");
+	r = TransferPrint((fsize - 0x190) / 4, "Send length info, receive seed 0x**cc****");
 
 	uint32_t f = (((r & 0x00ff0000) >> 8) + h) | 0xffff0000;
 	uint32_t c = 0x0000c387;
@@ -153,7 +152,7 @@ int main(int argc, char* argv[])
 		}
 
 		m = (0x6f646573 * m) + 1;
-		Spi32(w2 ^ ((~(0x02000000 + fcnt)) + 1) ^m ^0x43202f2f);
+		Transfer(w2 ^ ((~(0x02000000 + fcnt)) + 1) ^m ^0x43202f2f);
 
 		fcnt = fcnt + 4;
 	}
@@ -173,36 +172,21 @@ int main(int argc, char* argv[])
 		f = f >> 1;
 	}
 
-	Spi32WaitPrint(0x00000065, 0x00750065, "Wait for GBA to respond with CRC");
+	TransferWaitPrint(0x00000065, 0x00750065, "Wait for GBA to respond with CRC");
 
-	r = Spi32Print(0x00000066, "GBA ready with CRC");
-	r = Spi32Print(c,          "Let's exchange CRC!");
+	TransferPrint(0x00000066, "GBA ready with CRC");
+	r = TransferPrint(c,          "Let's exchange CRC!");
 
-//	printf("CRC ...hope they match!\n");
-	printf("MulitBoot done\n\n");
-
-
-	// init
-	/*do
-	{
-
-        Sleep(sleep1);
-		r = Spi32(0);
-
-	} while(r != 0x50525406);*/
-
+	printf("MultiBoot done\n\n");
 
 	// select cmd
 	for(;;)
 	{
-        //if (r != 0 && r != 0xffffffff) printf("%08x\n", r);
-
 		switch(r & 0xffffff00)
 		{
 		// PRINT_CMD
 		case 0x50525400:
 			CmdPrint(r & 0xff);
-            millisleep(100);
 			break;
 
 		// DPUTC_CMD
@@ -228,7 +212,6 @@ int main(int argc, char* argv[])
 		// FWRITE_CMD
 		case 0x46575200:
 			CmdFwrite();
-            millisleep(100);
 			break;
 
 		// FCLOSE_CMD
@@ -252,7 +235,7 @@ int main(int argc, char* argv[])
 		}
 
         millisleep(sleep1);
-		r = Spi32(0);
+		r = Transfer(0);
 	}
 }
 //---------------------------------------------------------------------------
@@ -265,7 +248,7 @@ void CmdPrint(uint32_t cnt)
 	{
 		if(i % 4 == 0)
 		{
-			r = Spi32(0);
+			r = Transfer(0);
        //     Sleep(sleep2);
 		}
 
@@ -279,6 +262,8 @@ void CmdPrint(uint32_t cnt)
 
 		r >>= 8;
 	}
+
+    millisleep(100);
 }
 //---------------------------------------------------------------------------
 void CmdPut(uint32_t chr)
@@ -301,27 +286,27 @@ void CmdFopen(uint32_t len)
 	{
 		if(i % 4 == 0)
 		{
-			r = Spi32(0);
+			r = Transfer(0);
 		}
 
 		fname[i] = r & 0xff;
 		r >>= 8;
 	}
 
-	r = Spi32(0);
+	r = Transfer(0);
 	ftype[0] = (r     ) & 0xff;
 	ftype[1] = (r >> 8) & 0xff;
 
 //	printf("fopen %s %s\n", fname, ftype);
 	fpSave = fopen(fname, ftype);
 
-	Spi32(0);
+	Transfer(0);
 }
 //---------------------------------------------------------------------------
 void CmdFseek(void)
 {
-	uint32_t offset = Spi32(0);
-	uint32_t origin = Spi32(0);
+	uint32_t offset = Transfer(0);
+	uint32_t origin = Transfer(0);
 
 //	printf("fseek %d %d\n", offset, origin);
 	fseek(fpSave, offset, origin);
@@ -333,14 +318,14 @@ void CmdFwrite(void)
 
 	uint32_t i, r;
 
-	uint32_t size  = Spi32(0);
-	uint32_t count = Spi32(0);
+	uint32_t size  = Transfer(0);
+	uint32_t count = Transfer(0);
 
 	for(i=0; i<size*count; i++)
 	{
 		if(i % 4 == 0)
 		{
-			r = Spi32(0);
+			r = Transfer(0);
         //    Sleep(sleep2);
 		}
 
@@ -350,6 +335,8 @@ void CmdFwrite(void)
 
   //  Sleep(1000);
 	printf("fwrite END %d\n", size*count);
+
+    millisleep(100);
 }
 //---------------------------------------------------------------------------
 void CmdFclose(void)
@@ -363,8 +350,8 @@ void CmdFread(void)
 	uint32_t i, r;
 	uint32_t d1, d2, d3, d4;
 
-	uint32_t size  = Spi32(0);
-	uint32_t count = Spi32(0);
+	uint32_t size  = Transfer(0);
+	uint32_t count = Transfer(0);
 
 	for(i=0; i<size*count/4; i++)
 	{
@@ -383,7 +370,7 @@ void CmdFread(void)
 		r <<= 8;
 		r += d1;
 
-		Spi32(r);
+		Transfer(r);
         millisleep(sleep1);
 	}
 
@@ -393,12 +380,12 @@ void CmdFread(void)
 void CmdFtell(void)
 {
 	fseek(fpSave, 0, SEEK_END);
-	Spi32(ftell(fpSave));
+	Transfer(ftell(fpSave));
 
 //	printf("ftell %d\n", ftell(fpSave));
 }
 //---------------------------------------------------------------------------
-uint32_t Spi32(uint32_t w)
+uint32_t Transfer(uint32_t w)
 {
 	char send[4];
 	char recv[4];
@@ -413,8 +400,6 @@ uint32_t Spi32(uint32_t w)
     recv[2] = transferByte(send[2]);
     recv[3] = transferByte(send[3]);
 
-	//spiXfer(spi, send, recv, 4);
-
 	uint32_t ret = 0;
 
 	ret += ((unsigned char)recv[0]) << 24;
@@ -425,23 +410,21 @@ uint32_t Spi32(uint32_t w)
 	return ret;
 }
 //---------------------------------------------------------------------------
-uint32_t Spi32Print(uint32_t w, char* msg)
+uint32_t TransferPrint(uint32_t w, char* msg)
 {
-	uint32_t r = Spi32(w);
+	uint32_t r = Transfer(w);
 
 	printf("0x%08x 0x%08x  ; %s\n", r, w, msg);
 	return  r;
 }
 //---------------------------------------------------------------------------
-void Spi32WaitPrint(uint32_t w, uint32_t comp, char* msg)
+void TransferWaitPrint(uint32_t w, uint32_t comp, char* msg)
 {
 	printf("%s 0x%08x\n", msg, comp);
 	uint32_t r;
 
 	do
 	{
-		r = Spi32(w);
-
-
+		r = Transfer(w);
 	} while(r != comp);
 }
