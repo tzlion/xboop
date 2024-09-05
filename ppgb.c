@@ -148,6 +148,11 @@ U8 transferByte(U8 value)
     return read;
 }
 
+void waitForSerialOutClear()
+{
+    while(readFromGb()) {}
+}
+
 double get1000xTiming(int transfer)
 {
     struct timeval stop, start;

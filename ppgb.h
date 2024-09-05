@@ -33,4 +33,6 @@ void deinit();
  */
 U8 transferByte(U8 value);
 
+void waitForSerialOutClear();
+
 #endif //PPGB_H

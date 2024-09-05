@@ -25,8 +25,7 @@ void     CmdFtell(uint32_t handle);
 
 //---------------------------------------------------------------------------
 int sleep1 = 10;
-int bigsleep = 1000; // 1s sleep done after completion of every print and fwrite command
-// Mitigates the problem of the subsequent command being missed sometimes
+int sleep2 = 20;
 
 FILE* fpSave[255];
 int nextHandle = 0;
@@ -181,7 +180,7 @@ int main(int argc, char* argv[])
 
 	printf("MultiBoot done\n\n");
 
-    millisleep(bigsleep);
+    millisleep(sleep2);
 
 	// select cmd
 	for(;;)
@@ -239,6 +238,7 @@ int main(int argc, char* argv[])
 		}
 
         millisleep(sleep1);
+        waitForSerialOutClear();
 		r = Transfer(0);
 	}
 }
@@ -265,7 +265,7 @@ void CmdPrint(uint32_t cnt)
 		r >>= 8;
 	}
 
-    millisleep(bigsleep);
+    millisleep(sleep2);
 }
 //---------------------------------------------------------------------------
 void CmdPut(uint32_t chr)
