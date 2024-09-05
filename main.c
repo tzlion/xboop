@@ -338,7 +338,7 @@ void CmdFwrite(uint32_t handle)
 
 	printf("[Wrote %d bytes to file %02x]\n", size*count, handle);
 
-    millisleep(bigsleep);
+    millisleep(sleep2);
 }
 //---------------------------------------------------------------------------
 void CmdFclose(uint32_t handle)
