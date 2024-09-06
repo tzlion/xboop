@@ -2,6 +2,12 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#ifdef _WIN32
+#include "windows.h"
+#else
+#include <unistd.h>
+#include <sys/io.h>
+#endif
 #include "ppgb.h"
 
 //---------------------------------------------------------------------------
@@ -19,6 +25,8 @@ void     CmdFread(uint32_t handle);
 void     CmdFtell(uint32_t handle);
 
 //---------------------------------------------------------------------------
+int sleep1 = 10;
+int sleep2 = 20;
 
 FILE* fpSave[255];
 int nextHandle = 0;
@@ -26,6 +34,15 @@ int nextHandle = 0;
 void printMessage(const char* message)
 {
     printf("%s\n", message);
+}
+
+void millisleep(int millisecs)
+{
+#ifdef _WIN32
+    Sleep(millisecs);
+#else
+    usleep(millisecs*1000);
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -164,6 +181,8 @@ int main(int argc, char* argv[])
 
 	printf("MultiBoot done\n\n");
 
+    millisleep(sleep2);
+
 	// select cmd
 	for(;;)
 	{
@@ -219,6 +238,7 @@ int main(int argc, char* argv[])
 			break;
 		}
 
+        millisleep(sleep1);
         while (PPGBRawOutputRead());
 		r = Transfer(0);
 	}
@@ -245,11 +265,14 @@ void CmdPrint(uint32_t cnt)
 
 		r >>= 8;
 	}
+
+    millisleep(sleep2);
 }
 //---------------------------------------------------------------------------
 void CmdPut(uint32_t chr)
 {
 	printf("%c", chr);
+    millisleep(sleep1);
 }
 //---------------------------------------------------------------------------
 void CmdFopen(uint32_t len)
@@ -315,6 +338,8 @@ void CmdFwrite(uint32_t handle)
 	}
 
 	printf("[Wrote %d bytes to file %02x]\n", size*count, handle);
+
+    millisleep(sleep2);
 }
 //---------------------------------------------------------------------------
 void CmdFclose(uint32_t handle)
@@ -349,7 +374,7 @@ void CmdFread(uint32_t handle)
 		r += d1;
 
 		Transfer(r);
-        while (PPGBRawOutputRead());
+        millisleep(sleep1);
 	}
 }
 //---------------------------------------------------------------------------
