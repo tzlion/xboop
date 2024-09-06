@@ -6,8 +6,7 @@
 #ifndef PPGB_H
 #define PPGB_H
 
-typedef unsigned char U8;
-typedef void(*PrintFunction)(const char*);
+typedef void(*PPGBPrint)(const char*);
 
 /**
  * Initialise the port. Must be called before transferring any data
@@ -19,20 +18,24 @@ typedef void(*PrintFunction)(const char*);
  * @param printFunction function to log port initialisation info, set to null for no logging
  * @return 1 if success, -1 if failed
  */
-int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay, PrintFunction printFunction);
+int PPGBInit(unsigned short basePort, int xbooCable, int minDelay, int maxDelay, PPGBPrint printFunction);
 
 /**
  * Deinitialise the port. Probably not super necessary unless you're going to initialise it again afterwards
  */
-void deinit();
+void PPGBDeinit();
 
 /**
  * Transfer a single byte to/from the GB
  * @param value Value to send. If you only want to read, send 00
  * @return Value received from the GB
  */
-U8 transferByte(U8 value);
+unsigned char PPGBTransfer(unsigned char value);
 
-void waitForSerialOutClear();
+/**
+ * Just get the raw state of the GB's serial out
+ * @return 0 or 1
+ */
+unsigned char PPGBRawOutputRead();
 
 #endif //PPGB_H

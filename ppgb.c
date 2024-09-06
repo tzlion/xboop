@@ -29,7 +29,7 @@ lpInp32 gfpInp32;
 HINSTANCE hInpOutDll;
 #endif
 
-U8 xbooCompat;
+unsigned char xbooCompat;
 unsigned short dataPort;
 unsigned short statusPort;
 unsigned short controlPort;
@@ -64,10 +64,10 @@ void outportb(unsigned short port, unsigned char value)
 
 /******************************************************************************/
 
-void writeToGb(U8 value, U8 clock)
+void writeToGb(unsigned char value, unsigned char clock)
 {
     if (xbooCompat) {
-        U8 ctrl = inportb(controlPort) & 0xFC;
+        unsigned char ctrl = inportb(controlPort) & 0xFC;
         ctrl = ctrl|(!clock);
         ctrl = ctrl|((!value) << 1);
         outportb(controlPort, ctrl);
@@ -76,13 +76,13 @@ void writeToGb(U8 value, U8 clock)
     }
 }
 
-U8 readFromGb()
+unsigned char readFromGb()
 {
     if (xbooCompat) {
-        U8 stat = inportb(statusPort);
+        unsigned char stat = inportb(statusPort);
         return stat&STATUS_ACK;
     } else {
-        U8 stat = inportb(statusPort);
+        unsigned char stat = inportb(statusPort);
         return !(stat&STATUS_BUSY);
     }
 }
@@ -129,12 +129,12 @@ void lptdelay(int amt)
         delayRead();
 }
 
-U8 transferByte(U8 value)
+unsigned char PPGBTransfer(unsigned char value)
 {
-    U8 read = 0;
+    unsigned char read = 0;
     int i;
     for(i=7;i>=0;i--) {
-        U8 v = (value>>i)&1;
+        unsigned char v = (value>>i)&1;
 
         writeToGb(v, 1);
         writeToGb(v, 0);
@@ -148,9 +148,9 @@ U8 transferByte(U8 value)
     return read;
 }
 
-void waitForSerialOutClear()
+unsigned char PPGBRawOutputRead()
 {
-    while(readFromGb()) {}
+    return readFromGb();
 }
 
 double get1000xTiming(int transfer)
@@ -160,7 +160,7 @@ double get1000xTiming(int transfer)
     int x;
     for(x = 0; x < 1000; x++) {
         if (transfer)
-            transferByte(0);
+            PPGBTransfer(0);
         else
             delayRead();
     }
@@ -200,7 +200,7 @@ void determineDelay(int minDelay, int maxDelay)
 
 /******************************************************************************/
 
-int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay, PrintFunction printFunction)
+int PPGBInit(unsigned short basePort, int xbooCable, int minDelay, int maxDelay, PPGBPrint printFunction)
 {
     xbooCompat = xbooCable;
     dataPort = basePort;
@@ -240,7 +240,7 @@ int init(unsigned short basePort, int xbooCable, int minDelay, int maxDelay, Pri
     return 1;
 }
 
-void deinit()
+void PPGBDeinit()
 {
     deinitPort();
 #ifdef _WIN32

@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    init(basePort, xbooCompat, 2, -1, printMessage);
+    PPGBInit(basePort, xbooCompat, 2, -1, printMessage);
 
 	FILE *fp = fopen(argv[1], "rb");
 
@@ -238,7 +238,7 @@ int main(int argc, char* argv[])
 		}
 
         millisleep(sleep1);
-        waitForSerialOutClear();
+        while (PPGBRawOutputRead()) {}
 		r = Transfer(0);
 	}
 }
@@ -393,10 +393,10 @@ uint32_t Transfer(uint32_t w)
 	send[1] = (w & 0x00ff0000) >> 16;
 	send[0] = (w & 0xff000000) >> 24;
 
-    recv[0] = transferByte(send[0]);
-    recv[1] = transferByte(send[1]);
-    recv[2] = transferByte(send[2]);
-    recv[3] = transferByte(send[3]);
+    recv[0] = PPGBTransfer(send[0]);
+    recv[1] = PPGBTransfer(send[1]);
+    recv[2] = PPGBTransfer(send[2]);
+    recv[3] = PPGBTransfer(send[3]);
 
 	uint32_t ret = 0;
 
