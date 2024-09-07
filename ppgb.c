@@ -1,4 +1,5 @@
 /**
+ * PPGB v0.1.0
  * Parallel port communication with Game Boy consoles
  * by taizou, based on code from gblinkdl by Brian Provinciano
  */
