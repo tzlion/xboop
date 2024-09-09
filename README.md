@@ -60,4 +60,5 @@ Modified for parallel port usage by taizou
 Parallel port communication code based on gblinkdl by Brian Provinciano  
 Thanks to WinterMute for the original Xboo Communicator & for releasing the [source code](https://github.com/devkitPro/xcomms)
 (used for reference for some things)  
-& thanks to Martin Korth for the [original Xboo implementation](https://problemkaputt.de/gba-xboo.htm)
+& thanks to Martin Korth for the [original Xboo implementation](https://problemkaputt.de/gba-xboo.htm)  
+Uses [InpOut32](https://www.highrez.co.uk/Downloads/InpOut32/) for port access on Windows
