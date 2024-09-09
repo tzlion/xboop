@@ -11,13 +11,12 @@ Requirements
 ------------
 
 * A PC with the following:
-  * A parallel port, either onboard or on an expansion card (PCI/PCIe)
-    * USB to parallel adapters will not work
+  * A parallel port, either onboard or on an expansion card (PCI/PCIe). USB to parallel adapters will not work
   * Windows or Linux OS
 * A Game Boy Advance or Game Boy Advance SP console
 * One of the following cables to connect the GBA to the PC's parallel port (you'll probably have to build it yourself):
   * An Xboo cable, this is the one supported by the original Xboo Communicator.  
-    [Schematic available in the Xboo Communicator archive](http://web.archive.org/web/20091218212855/http://www.devkitpro.org/xcomms_linux.tar.bz2)
+    [Schematic available here](https://github.com/devkitPro/xcomms/blob/main/docs/xboo_schematic.png)
   * A GBlink cable, this is the one originally supported by GBlinkdl/GBlinkDX.  
     [Schematic available in the GBlinkdl archive](http://web.archive.org/web/20070203014624/http://www.bripro.com/low/hardware/gblinkdl/files/gblinkdl.zip)
 
@@ -59,5 +58,6 @@ Based on SendSave.c from [gba_01_multiboot / Raspberry Pi GBA Loader](https://gi
 Originally based on work by Ken Kaarvik  
 Modified for parallel port usage by taizou  
 Parallel port communication code based on gblinkdl by Brian Provinciano  
-Thanks to WinterMute for releasing the original [Xboo Communicator source code](https://github.com/devkitPro/xcomms)
-(used for reference for some stuff)
+Thanks to WinterMute for the original Xboo Communicator & for releasing the [source code](https://github.com/devkitPro/xcomms)
+(used for reference for some things)  
+& thanks to Martin Korth for the [original Xboo implementation](https://problemkaputt.de/gba-xboo.htm)
