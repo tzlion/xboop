@@ -48,7 +48,7 @@ void millisleep(int millisecs)
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-    int xbooCompat = 0;
+    int xbooCompat = 1;
     unsigned short basePort = 0x378;
 
     if (argc < 2) {
@@ -58,8 +58,8 @@ int main(int argc, char* argv[])
     if (argc >= 3) {
         int argno;
         for (argno = 2; argno < argc; argno++) {
-            if ( memcmp(argv[argno],"-x",2) == 0 ) {
-                xbooCompat = 1;
+            if ( memcmp(argv[argno],"-l",2) == 0 ) {
+                xbooCompat = 0;
             } else if ( memcmp(argv[argno],"-p",2) == 0 && strlen(argv[argno]) == 6) {
                 char portStr[5];
                 strncpy(portStr, argv[argno]+2, 5);

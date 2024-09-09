@@ -37,7 +37,7 @@ For Windows you may need to run it as administrator the first time to allow inpo
 For Linux you will always need to run it as superuser to allow port access. 
 
 Options may be:
-* `-x` for xboo cable mode, otherwise will use GBlink cable mode
+* `-l` for GBlink cable mode, otherwise will use xboo cable mode
 * `-pXXXX` to use a specified port address for your parallel port, default is `0378`
 
 If everything has worked it should handshake with the GBA, the GBA will make a chime sound and the Nintendo logo will
