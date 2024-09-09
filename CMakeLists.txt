@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.27)
-project(mbredo)
+project(xboop)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(mbredo main.c
+add_executable(xboop main.c
         ppgb.c
         ppgb.h)

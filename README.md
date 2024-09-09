@@ -1,5 +1,5 @@
-IDK THIS DOESNT HAVE A NAME YET
-=======
+Xboop
+=====
 
 CLI based simplified reimplementation of Xboo Communicator functionality for loading a GBA multiboot program and 
 communicating with a PC via parallel port.
@@ -30,7 +30,7 @@ For Linux, download the source code archive from the latest release, extract it 
 Connect your GBA to your PC, power on the GBA and (if a cartridge is inserted) press SELECT+START when the Nintendo logo
 appears to prevent it from booting. Then run this program from the command line as follows:
 ```
-mbredo YourMultibootRom_mb.gba [options]
+xboop YourMultibootRom_mb.gba [options]
 ```
 
 For Windows you may need to run it as administrator the first time to allow inpout32 to install its driver.  
