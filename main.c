@@ -72,7 +72,10 @@ int main(int argc, char* argv[])
         }
     }
 
-    PPGBInit(basePort, xbooCompat, 2, -1, printMessage);
+    int initResult = PPGBInit(basePort, xbooCompat, 2, -1, printMessage);
+	if (initResult < 0) {
+		return 3;
+	}
 
 	FILE *fp = fopen(argv[1], "rb");
 
